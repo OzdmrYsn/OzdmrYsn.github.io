@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yeniden Tasarlanmış Trello Prototipi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="light-theme"> <div id="notificationArea" class="fixed top-5 right-5 z-[2000]"></div>
+
+    <div id="authScreen" class="min-h-screen flex items-center justify-center p-4">
+        <div class="bg-white p-10 rounded-xl shadow-2xl w-full max-w-md"> <img src="https://placehold.co/150x40/0079BF/FFFFFF?text=ProjeYönet" alt="Proje Yönetim Logosu" class="mx-auto mb-8 h-10">
+            <div id="loginForm">
+                <h2 class="text-xl font-semibold text-center mb-6">Giriş Yap</h2>
+                <input type="text" id="loginUsername" placeholder="Kullanıcı Adı" class="mb-4 w-full p-2 border rounded-md">
+                <input type="password" id="loginPassword" placeholder="Şifre" class="mb-6 w-full p-2 border rounded-md">
+                <button id="loginButton" class="w-full btn-primary py-2.5 mb-4">Giriş Yap</button>
+                <p class="text-center text-sm">
+                    Hesabın yok mu? <button id="showRegisterFormButton" class="font-medium text-blue-600 hover:text-blue-500">Kayıt Ol</button>
+                </p>
+            </div>
+            <div id="registerForm" class="hidden">
+                <h2 class="text-xl font-semibold text-center mb-6">Kayıt Ol</h2>
+                <input type="text" id="registerFullName" placeholder="Ad Soyad" class="mb-4 w-full p-2 border rounded-md">
+                <input type="text" id="registerUsername" placeholder="Kullanıcı Adı" class="mb-4 w-full p-2 border rounded-md">
+                <input type="password" id="registerPassword" placeholder="Şifre" class="mb-4 w-full p-2 border rounded-md">
+                <input type="password" id="registerPasswordConfirm" placeholder="Şifreyi Onayla" class="mb-6 w-full p-2 border rounded-md">
+                <button id="registerButton" class="w-full btn-primary py-2.5 mb-4">Kayıt Ol</button>
+                <p class="text-center text-sm">
+                    Zaten hesabın var mı? <button id="showLoginFormButton" class="font-medium text-blue-600 hover:text-blue-500">Giriş Yap</button>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div id="appScreen" class="hidden">
+        <div id="sidebar">
+            <h2><i class="fas fa-clipboard-list mr-2"></i>Panolarım</h2>
+            <div id="sidebarBoardsContainer" class="flex-grow overflow-y-auto pr-2"> </div>
+            <div id="newBoardContainer">
+                <input type="text" id="newBoardNameSidebar" placeholder="Yeni Pano Adı..." class="w-full p-2 rounded-md text-sm mb-2">
+                <button id="addBoardButtonSidebar" class="w-full btn-primary text-sm py-2">Pano Ekle</button>
+            </div>
+        </div>
+
+        <div id="mainAppContent"> <header id="appHeader">
+                <h1 id="currentBoardNameHeader" class="text-2xl font-bold">Pano Seçin</h1>
+                <div class="flex items-center">
+                    <input type="text" id="cardSearchInput" placeholder="Kartlarda Ara..." class="p-2 border rounded-md text-sm mr-3 hidden">
+                    <button id="toggleArchivedViewButton" class="btn-secondary text-sm px-3 py-2 mr-3 hidden"><i class="fas fa-archive mr-1"></i> Arşiv</button> 
+                    <button id="themeToggle" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 mr-3">
+                        <i class="fas fa-moon"></i> </button>
+                    <div id="profileArea" class="mr-4">
+                        <img id="profileImage" src="https://placehold.co/32x32/dfe1e6/172b4d?text=P" alt="Profil Resmi">
+                    </div>
+                    <span id="currentUserDisplay" class="text-sm mr-4"></span>
+                    <button id="logoutButton" class="btn-secondary text-sm px-4 py-2">Çıkış Yap</button>
+                </div>
+            </header>
+
+            <div id="selectedBoardArea" class="hidden">
+                 <div class="flex justify-start items-center mb-6">
+                    <input type="text" id="newColumnName" placeholder="Yeni Kolon Adı" class="inline-block w-auto mr-2 p-2 border rounded-md text-sm">
+                    <button id="addColumnButton" class="btn-primary text-sm px-4 py-2">Kolon Ekle</button>
+                </div>
+                <div id="columnsContainer" class="flex gap-3 overflow-x-auto pb-4"></div>
+                <div id="archivedCardsContainer" class="hidden"></div> 
+            </div>
+        </div>
+    </div>
+
+    <div id="cardModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="closeCardModal">&times;</span>
+            <input type="text" id="modalCardTitleInput" placeholder="Kart Başlığı" class="text-2xl font-semibold mb-4 border-0 border-b-2 border-transparent focus:border-blue-500 focus:ring-0 p-1 w-full">
+            <input type="hidden" id="modalCardId">
+            <input type="hidden" id="modalColumnId">
+            
+            <label for="modalCardDescription" class="block text-sm font-medium mb-1 mt-2">Açıklama:</label>
+            <textarea id="modalCardDescription" rows="3" placeholder="Kart açıklaması..." class="mb-4 w-full"></textarea>
+
+            <label for="modalCardImageUrl" class="block text-sm font-medium mb-1">Kapak Görseli URL'si:</label>
+            <input type="text" id="modalCardImageUrl" placeholder="https://ornek.com/resim.jpg" class="mb-4 w-full">
+
+            <div class="grid grid-cols-2 gap-x-6 gap-y-4 mb-4"> 
+                <div>
+                    <label for="modalCardAssigneesContainer" class="block text-sm font-medium mb-1">Atanan Kişiler:</label>
+                    <div id="modalCardAssigneesContainer" class="max-h-28 overflow-y-auto border p-2 rounded-md flex flex-wrap gap-1">
+                        </div>
+                </div>
+                <div>
+                    <label for="modalCardDueDate" class="block text-sm font-medium mb-1">Bitiş Tarihi:</label>
+                    <input type="date" id="modalCardDueDate" class="w-full p-2 border rounded-md text-sm">
+                </div>
+                 <div>
+                    <label for="modalCardPriority" class="block text-sm font-medium mb-1">Öncelik:</label>
+                    <select id="modalCardPriority" class="w-full p-2 border rounded-md text-sm bg-white dark:bg-gray-700 dark:border-gray-600">
+                        <option value="low">Düşük</option>
+                        <option value="normal">Normal</option>
+                        <option value="high">Yüksek</option>
+                        <option value="urgent">Acil</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium mb-1 mt-4">Alt Görevler (<span id="subtaskProgress">0/0</span>):</label>
+                <div id="subtaskListContainer" class="max-h-40 overflow-y-auto p-3 rounded-md mb-2 text-sm">
+                    </div>
+                <div class="flex gap-2">
+                    <input type="text" id="newSubtaskText" placeholder="Yeni alt görev..." class="flex-grow p-2 border rounded-md text-sm">
+                    <button id="addSubtaskButton" class="btn-secondary text-xs px-3 py-2 whitespace-nowrap">Ekle</button>
+                </div>
+            </div>
+            
+            <div class="mt-4"> <label class="block text-sm font-medium mb-1 mt-4">Yorumlar:</label>
+                <div id="modalCardCommentsContainer" class="max-h-40 overflow-y-auto p-3 rounded-md mb-2 text-sm">
+                    </div>
+                <textarea id="newCommentText" placeholder="Yorumunuzu yazın..." rows="2" class="w-full mb-2 p-2 border rounded-md"></textarea>
+                <button id="addCommentButton" class="btn-secondary text-xs px-3 py-1.5 float-right">Yorum Ekle</button>
+            </div>
+
+
+            <label class="block text-sm font-medium mb-1 mt-10">Etiketler:</label> 
+            <div id="existingLabelsContainer" class="mb-2 flex flex-col gap-1"></div> 
+            <div class="new-label-section">
+                <input type="text" id="newLabelName" placeholder="Yeni etiket adı" class="flex-grow">
+                <div id="newLabelColorSelector" class="label-color-selector flex-shrink-0"></div>
+                <button id="addNewLabelButton" class="btn-secondary text-xs px-3 py-2 whitespace-nowrap">Ekle</button>
+            </div>
+
+            <div class="mt-6">
+                <label class="block text-sm font-medium mb-1">Kart Aktivitesi:</label>
+                <div id="modalCardActivityLogContainer" class="max-h-40 overflow-y-auto p-3 rounded-md text-sm">
+                    <p class="text-gray-400 dark:text-gray-500 italic text-center py-2">Aktivite yok.</p>
+                </div>
+            </div>
+            
+            <div class="flex justify-end space-x-3 mt-8"> 
+                <button id="archiveCardButton" class="btn-secondary px-4 py-2 text-sm">Kartı Arşivle</button> <button id="deleteCardButton" class="btn-danger px-4 py-2 text-sm">Kartı Sil</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="profileModal" class="modal">
+        <div class="modal-content max-w-md">
+            <span class="close-button" id="closeProfileModal">&times;</span>
+            <h3 class="text-xl font-semibold mb-6 text-center">Profilimi Düzenle</h3>
+            
+            <div class="mb-4 text-center">
+                <img id="profileModalImagePreview" src="https://placehold.co/100x100/dfe1e6/172b4d?text=P" alt="Profil Resmi Önizleme" class="w-24 h-24 rounded-full mx-auto mb-3 object-cover">
+            </div>
+
+            <label for="profileFullNameInput" class="block text-sm font-medium mb-1">Ad Soyad:</label>
+            <input type="text" id="profileFullNameInput" placeholder="Adınız Soyadınız" class="w-full p-2 border rounded-md mb-4">
+
+            <label for="profileImageUrlInput" class="block text-sm font-medium mb-1">Profil Resmi URL'si:</label>
+            <input type="text" id="profileImageUrlInput" placeholder="https://ornek.com/profil-resmim.jpg" class="w-full p-2 border rounded-md mb-6">
+            
+            <div class="flex justify-end">
+                <button id="saveProfileButton" class="btn-primary px-6 py-2 text-sm">Profili Kaydet</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="renameBoardModal" class="modal">
+        <div class="modal-content max-w-md">
+            <span class="close-button" id="closeRenameBoardModal">&times;</span>
+            <h3 class="text-xl font-semibold mb-6 text-center">Panoyu Yeniden Adlandır</h3>
+            <input type="hidden" id="renamingBoardId">
+            <div>
+                <label for="renameBoardNameInput" class="block text-sm font-medium mb-1">Yeni Pano Adı:</label>
+                <input type="text" id="renameBoardNameInput" class="w-full p-2 border rounded-md mb-6">
+            </div>
+            <div class="flex justify-end">
+                <button id="saveRenamedBoardButton" class="btn-primary px-6 py-2 text-sm">Kaydet</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="renameColumnModal" class="modal">
+        <div class="modal-content max-w-md">
+            <span class="close-button" id="closeRenameColumnModal">&times;</span>
+            <h3 class="text-xl font-semibold mb-6 text-center">Kolonu Yeniden Adlandır</h3>
+            <input type="hidden" id="renamingColumnId">
+            <div>
+                <label for="renameColumnNameInput" class="block text-sm font-medium mb-1">Yeni Kolon Adı:</label>
+                <input type="text" id="renameColumnNameInput" class="w-full p-2 border rounded-md mb-6">
+            </div>
+            <div class="flex justify-end">
+                <button id="saveRenamedColumnButton" class="btn-primary px-6 py-2 text-sm">Kaydet</button>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="confirmationModal" class="confirmation-modal">
+        <div class="confirmation-modal-content">
+            <h4 id="confirmationModalTitle">Emin misiniz?</h4>
+            <p id="confirmationModalMessage">Bu işlem geri alınamaz.</p>
+            <div class="confirmation-modal-buttons">
+                <button id="confirmYesButton" class="confirm-yes-button">Evet, Sil</button>
+                <button id="confirmNoButton" class="confirm-no-button">İptal</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="boardMembersModal" class="modal">
+        <div class="modal-content max-w-lg">
+            <span class="close-button" id="closeBoardMembersModal">&times;</span>
+            <h3 class="text-xl font-semibold mb-4">Pano Üyelerini Yönet</h3>
+            <input type="hidden" id="manageMembersBoardId">
+            <div id="boardMembersListContainer" class="max-h-60 overflow-y-auto">
+                </div>
+            <div class="mt-4 flex justify-end">
+                <button id="saveBoardMembersButton" class="btn-primary px-6 py-2 text-sm">Kaydet</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="editLabelModal" class="modal">
+        <div class="modal-content max-w-sm">
+            <span class="close-button" id="closeEditLabelModal">&times;</span>
+            <h3 class="text-xl font-semibold mb-4">Etiketi Düzenle</h3>
+            <input type="hidden" id="editingLabelId">
+            <div>
+                <label for="editLabelNameInput" class="block text-sm font-medium mb-1">Etiket Adı:</label>
+                <input type="text" id="editLabelNameInput" class="w-full p-2 border rounded-md mb-4">
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">Etiket Rengi:</label>
+                <div id="editLabelColorSelector" class="label-color-selector mb-4">
+                    </div>
+            </div>
+            <div class="flex justify-end">
+                <button id="saveEditLabelButton" class="btn-primary px-6 py-2 text-sm">Kaydet</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="script.js"></script>
+</body>
+</html>
